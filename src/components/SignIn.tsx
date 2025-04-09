@@ -3,32 +3,66 @@ import { useNavigate } from 'react-router-dom';
 import ThreeDBackground from './ThreeDBackground';
 import Footer from './Footer';
 import Navbar from './Navbar';
+import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
 
 const SignIn: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
-      // TODO: Implement actual authentication logic
-      console.log('Signing in with:', { email, password });
-      // After successful sign in, redirect to dashboard or home
+      // TODO: Replace with actual authentication logic
+      const response = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Invalid credentials');
+      }
+
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      toast({
+        title: 'Success',
+        description: 'Signed in successfully',
+      });
+
       navigate('/dashboard');
     } catch (err) {
-      setError('Failed to sign in. Please check your credentials.');
+      setError(err instanceof Error ? err.message : 'Failed to sign in');
+      toast({
+        title: 'Error',
+        description: 'Failed to sign in. Please check your credentials.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen font-helvetica">
       <ThreeDBackground />
       <Navbar />
-      <div className=" font-helvetica relative z-10 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="font-helvetica relative z-10 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 bg-background/80 backdrop-blur-xl p-8 rounded-xl border border-border/50 shadow-lg">
           <div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
@@ -38,32 +72,32 @@ const SignIn: React.FC = () => {
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="rounded-md shadow-sm -space-y-px">
               <div>
-                <label htmlFor="email-address" className="sr-only">
+                <Label htmlFor="email-address" className="sr-only">
                   Email address
-                </label>
-                <input
+                </Label>
+                <Input
                   id="email-address"
                   name="email"
                   type="email"
                   autoComplete="email"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-border/50 placeholder-foreground/50 text-foreground rounded-t-md focus:outline-none focus:ring-neon-blue focus:border-neon-blue focus:z-10 sm:text-sm bg-background/50"
+                  className="mt-2 appearance-none rounded-none relative block w-full px-3 py-2 border border-border/50 placeholder-foreground/50 text-foreground rounded-t-md focus:outline-none focus:ring-neon-blue focus:border-neon-blue focus:z-10 sm:text-sm bg-background/50"
                   placeholder="Email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
               <div>
-                <label htmlFor="password" className="sr-only">
+                <Label htmlFor="password" className="sr-only">
                   Password
-                </label>
-                <input
+                </Label>
+                <Input
                   id="password"
                   name="password"
                   type="password"
                   autoComplete="current-password"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-border/50 placeholder-foreground/50 text-foreground rounded-b-md focus:outline-none focus:ring-neon-blue focus:border-neon-blue focus:z-10 sm:text-sm bg-background/50"
+                  className="mt-5 appearance-none rounded-none relative block w-full px-3 py-2 border border-border/50 placeholder-foreground/50 text-foreground rounded-b-md focus:outline-none focus:ring-neon-blue focus:border-neon-blue focus:z-10 sm:text-sm bg-background/50"
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -76,12 +110,17 @@ const SignIn: React.FC = () => {
             )}
 
             <div>
-              <button
+              <Button
                 type="submit"
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-neon-blue hover:bg-neon-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neon-blue"
+                className="bg-neon-gradient group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white  hover:bg-neon-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neon-blue"
+                disabled={loading}
               >
-                Sign in
-              </button>
+                {loading ? (
+                  <Loader2 className="h-5 w-5 animate-spin " />
+                ) : (
+                  'Sign in'
+                )}
+              </Button>
             </div>
           </form>
         </div>

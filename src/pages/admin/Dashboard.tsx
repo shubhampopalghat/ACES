@@ -20,7 +20,40 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, DollarSign, Calendar, Users } from 'lucide-react';
+import { Plus, Edit, Trash2, DollarSign, Calendar, Users, UserPlus, Lock, Unlock, Image as ImageIcon, FileText, ExternalLink } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+
+interface GalleryImage {
+  id: number;
+  title: string;
+  url: string;
+  uploadedBy: string;
+  uploadDate: string;
+  description?: string;
+}
+
+interface BudgetEntry {
+  id: number;
+  category: string;
+  amount: number;
+  type: 'income' | 'expense';
+  description: string;
+  date: string;
+  addedBy: string;
+}
+
+interface CommitteeMember {
+  id: number;
+  name: string;
+  role: string;
+  email: string;
+  phone: string;
+  image: string;
+  department: string;
+  isAdmin: boolean;
+}
 
 interface Event {
   id: number;
@@ -30,10 +63,20 @@ interface Event {
   budget: number;
   attendees: number;
   image: string;
+  status: 'open' | 'closed';
+  location: string;
+  registrationLink: string;
+  expenses: {
+    category: string;
+    amount: number;
+    description: string;
+  }[];
 }
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('events');
+
   const [events, setEvents] = useState<Event[]>([
     {
       id: 1,
@@ -42,16 +85,30 @@ const AdminDashboard = () => {
       description: "Annual hackathon event",
       budget: 50000,
       attendees: 200,
-      image: "/events/event1.jpg"
-    },
+      image: "/events/event1.jpg",
+      status: 'open',
+      location: "Main Auditorium",
+      registrationLink: "https://example.com/register",
+      expenses: [
+        {
+          category: "Venue",
+          amount: 20000,
+          description: "Main hall rental"
+        }
+      ]
+    }
+  ]);
+
+  const [committeeMembers, setCommitteeMembers] = useState<CommitteeMember[]>([
     {
-      id: 2,
-      title: "Tech Conference",
-      date: "2024-04-05",
-      description: "Industry conference",
-      budget: 30000,
-      attendees: 150,
-      image: "/events/event2.jpg"
+      id: 1,
+      name: "John Doe",
+      role: "President",
+      email: "john@example.com",
+      phone: "1234567890",
+      image: "/committee/john.jpg",
+      department: "Computer Science",
+      isAdmin: true
     }
   ]);
 
@@ -61,12 +118,47 @@ const AdminDashboard = () => {
     description: '',
     budget: 0,
     attendees: 0,
-    image: ''
+    image: '',
+    status: 'open',
+    location: '',
+    registrationLink: '',
+    expenses: []
   });
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [newCommitteeMember, setNewCommitteeMember] = useState<Omit<CommitteeMember, 'id'>>({
+    name: '',
+    role: '',
+    email: '',
+    phone: '',
+    image: '',
+    department: '',
+    isAdmin: true
+  });
 
+  const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
+  const [isCommitteeDialogOpen, setIsCommitteeDialogOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [editingMember, setEditingMember] = useState<CommitteeMember | null>(null);
+
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [budgetEntries, setBudgetEntries] = useState<BudgetEntry[]>([]);
+  const [newImage, setNewImage] = useState<Omit<GalleryImage, 'id'>>({
+    title: '',
+    url: '',
+    uploadedBy: '',
+    uploadDate: new Date().toISOString(),
+    description: ''
+  });
+  const [newBudgetEntry, setNewBudgetEntry] = useState<Omit<BudgetEntry, 'id'>>({
+    category: '',
+    amount: 0,
+    type: 'expense',
+    description: '',
+    date: new Date().toISOString(),
+    addedBy: ''
+  });
+
+  // Event handlers
   const handleAddEvent = () => {
     const event: Event = {
       ...newEvent,
@@ -79,30 +171,127 @@ const AdminDashboard = () => {
       description: '',
       budget: 0,
       attendees: 0,
-      image: ''
+      image: '',
+      status: 'open',
+      location: '',
+      registrationLink: '',
+      expenses: []
     });
-    setIsDialogOpen(false);
+    setIsEventDialogOpen(false);
   };
 
   const handleEditEvent = () => {
     if (!editingEvent) return;
     setEvents(events.map(e => e.id === editingEvent.id ? editingEvent : e));
     setEditingEvent(null);
-    setIsDialogOpen(false);
+    setIsEventDialogOpen(false);
   };
 
   const handleDeleteEvent = (id: number) => {
     setEvents(events.filter(e => e.id !== id));
   };
 
+  const handleToggleEventStatus = (eventId: number) => {
+    setEvents(events.map(event =>
+      event.id === eventId
+        ? { ...event, status: event.status === 'open' ? 'closed' : 'open' }
+        : event
+    ));
+  };
+
+  // Committee member handlers
+  const handleAddCommitteeMember = () => {
+    const member: CommitteeMember = {
+      ...newCommitteeMember,
+      id: committeeMembers.length + 1
+    };
+    setCommitteeMembers([...committeeMembers, member]);
+    setNewCommitteeMember({
+      name: '',
+      role: '',
+      email: '',
+      phone: '',
+      image: '',
+      department: '',
+      isAdmin: true
+    });
+    setIsCommitteeDialogOpen(false);
+  };
+
+  const handleEditCommitteeMember = () => {
+    if (!editingMember) return;
+    setCommitteeMembers(committeeMembers.map(m => m.id === editingMember.id ? editingMember : m));
+    setEditingMember(null);
+    setIsCommitteeDialogOpen(false);
+  };
+
+  const handleDeleteCommitteeMember = (id: number) => {
+    setCommitteeMembers(committeeMembers.filter(m => m.id !== id));
+  };
+
+  // Statistics
   const totalBudget = events.reduce((sum, event) => sum + event.budget, 0);
   const totalAttendees = events.reduce((sum, event) => sum + event.attendees, 0);
+  const activeEvents = events.filter(event => event.status === 'open').length;
+
+  const handleAddImage = () => {
+    const image: GalleryImage = {
+      ...newImage,
+      id: galleryImages.length + 1
+    };
+    setGalleryImages([...galleryImages, image]);
+    setNewImage({
+      title: '',
+      url: '',
+      uploadedBy: '',
+      uploadDate: new Date().toISOString(),
+      description: ''
+    });
+  };
+
+  const handleDeleteImage = (id: number) => {
+    setGalleryImages(galleryImages.filter(img => img.id !== id));
+  };
+
+  const handleAddBudgetEntry = () => {
+    const entry: BudgetEntry = {
+      ...newBudgetEntry,
+      id: budgetEntries.length + 1
+    };
+    setBudgetEntries([...budgetEntries, entry]);
+    setNewBudgetEntry({
+      category: '',
+      amount: 0,
+      type: 'expense',
+      description: '',
+      date: new Date().toISOString(),
+      addedBy: ''
+    });
+  };
+
+  const handleDeleteBudgetEntry = (id: number) => {
+    setBudgetEntries(budgetEntries.filter(entry => entry.id !== id));
+  };
+
+  // Calculate budget statistics
+  const totalIncome = budgetEntries
+    .filter(entry => entry.type === 'income')
+    .reduce((sum, entry) => sum + entry.amount, 0);
+
+  const totalExpenses = budgetEntries
+    .filter(entry => entry.type === 'expense')
+    .reduce((sum, entry) => sum + entry.amount, 0);
+
+  const currentBalance = totalIncome - totalExpenses;
 
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
+            <p className="text-muted-foreground mt-1">Manage your club's events and committee members</p>
+          </div>
           <Button
             variant="outline"
             onClick={() => navigate('/')}
@@ -113,11 +302,11 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-background/95 backdrop-blur-xl border border-border/50 rounded-xl p-6"
+            className="bg-background/95 backdrop-blur-xl border border-border/50 rounded-xl p-6 hover:shadow-lg transition-shadow"
           >
             <div className="flex items-center gap-4">
               <div className="bg-neon-blue/10 p-3 rounded-full">
@@ -134,15 +323,15 @@ const AdminDashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-background/95 backdrop-blur-xl border border-border/50 rounded-xl p-6"
+            className="bg-background/95 backdrop-blur-xl border border-border/50 rounded-xl p-6 hover:shadow-lg transition-shadow"
           >
             <div className="flex items-center gap-4">
               <div className="bg-neon-purple/10 p-3 rounded-full">
                 <Calendar className="h-6 w-6 text-neon-purple" />
               </div>
               <div>
-                <p className="text-muted-foreground">Total Events</p>
-                <p className="text-2xl font-bold text-foreground">{events.length}</p>
+                <p className="text-muted-foreground">Active Events</p>
+                <p className="text-2xl font-bold text-foreground">{activeEvents}</p>
               </div>
             </div>
           </motion.div>
@@ -151,7 +340,7 @@ const AdminDashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-background/95 backdrop-blur-xl border border-border/50 rounded-xl p-6"
+            className="bg-background/95 backdrop-blur-xl border border-border/50 rounded-xl p-6 hover:shadow-lg transition-shadow"
           >
             <div className="flex items-center gap-4">
               <div className="bg-neon-pink/10 p-3 rounded-full">
@@ -163,180 +352,673 @@ const AdminDashboard = () => {
               </div>
             </div>
           </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-background/95 backdrop-blur-xl border border-border/50 rounded-xl p-6 hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-neon-green/10 p-3 rounded-full">
+                <UserPlus className="h-6 w-6 text-neon-green" />
+              </div>
+              <div>
+                <p className="text-muted-foreground">Committee Members</p>
+                <p className="text-2xl font-bold text-foreground">{committeeMembers.length}</p>
+              </div>
+            </div>
+          </motion.div>
         </div>
 
-        {/* Events Table */}
-        <div className="bg-background/95 backdrop-blur-xl border border-border/50 rounded-xl p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-foreground">Events</h2>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="relative overflow-hidden group">
-                  <span className="absolute inset-0 bg-neon-gradient animate-gradient-animation bg-300%"></span>
-                  <span className="relative flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add Event
-                  </span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>{editingEvent ? 'Edit Event' : 'Add New Event'}</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="title">Title</Label>
-                    <Input
-                      id="title"
-                      value={editingEvent?.title || newEvent.title}
-                      onChange={(e) => {
-                        if (editingEvent) {
-                          setEditingEvent({ ...editingEvent, title: e.target.value });
-                        } else {
-                          setNewEvent({ ...newEvent, title: e.target.value });
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      value={editingEvent?.date || newEvent.date}
-                      onChange={(e) => {
-                        if (editingEvent) {
-                          setEditingEvent({ ...editingEvent, date: e.target.value });
-                        } else {
-                          setNewEvent({ ...newEvent, date: e.target.value });
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      value={editingEvent?.description || newEvent.description}
-                      onChange={(e) => {
-                        if (editingEvent) {
-                          setEditingEvent({ ...editingEvent, description: e.target.value });
-                        } else {
-                          setNewEvent({ ...newEvent, description: e.target.value });
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="budget">Budget (₹)</Label>
-                    <Input
-                      id="budget"
-                      type="number"
-                      value={editingEvent?.budget || newEvent.budget}
-                      onChange={(e) => {
-                        if (editingEvent) {
-                          setEditingEvent({ ...editingEvent, budget: Number(e.target.value) });
-                        } else {
-                          setNewEvent({ ...newEvent, budget: Number(e.target.value) });
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="attendees">Expected Attendees</Label>
-                    <Input
-                      id="attendees"
-                      type="number"
-                      value={editingEvent?.attendees || newEvent.attendees}
-                      onChange={(e) => {
-                        if (editingEvent) {
-                          setEditingEvent({ ...editingEvent, attendees: Number(e.target.value) });
-                        } else {
-                          setNewEvent({ ...newEvent, attendees: Number(e.target.value) });
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="image">Image URL</Label>
-                    <Input
-                      id="image"
-                      value={editingEvent?.image || newEvent.image}
-                      onChange={(e) => {
-                        if (editingEvent) {
-                          setEditingEvent({ ...editingEvent, image: e.target.value });
-                        } else {
-                          setNewEvent({ ...newEvent, image: e.target.value });
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end gap-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setIsDialogOpen(false);
-                      setEditingEvent(null);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={editingEvent ? handleEditEvent : handleAddEvent}
-                    className="relative overflow-hidden group"
-                  >
-                    <span className="absolute inset-0 bg-neon-gradient animate-gradient-animation bg-300%"></span>
-                    <span className="relative">{editingEvent ? 'Save Changes' : 'Add Event'}</span>
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+        {/* Main Content */}
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid grid-cols-4 gap-4 bg-background/95 p-1">
+            <TabsTrigger value="events" className="data-[state=active]:bg-neon-blue/10">
+              <Calendar className="h-4 w-4 mr-2" />
+              Events
+            </TabsTrigger>
+            <TabsTrigger value="committee" className="data-[state=active]:bg-neon-purple/10">
+              <Users className="h-4 w-4 mr-2" />
+              Committee
+            </TabsTrigger>
+            <TabsTrigger value="gallery" className="data-[state=active]:bg-neon-green/10">
+              <ImageIcon className="h-4 w-4 mr-2" />
+              Gallery
+            </TabsTrigger>
+            <TabsTrigger value="budget" className="data-[state=active]:bg-neon-yellow/10">
+              <DollarSign className="h-4 w-4 mr-2" />
+              Budget
+            </TabsTrigger>
+          </TabsList>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Budget</TableHead>
-                <TableHead>Attendees</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {events.map((event) => (
-                <TableRow key={event.id}>
-                  <TableCell className="font-medium">{event.title}</TableCell>
-                  <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
-                  <TableCell>₹{event.budget.toLocaleString()}</TableCell>
-                  <TableCell>{event.attendees}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setEditingEvent(event);
-                          setIsDialogOpen(true);
-                        }}
-                      >
-                        <Edit className="h-4 w-4" />
+          {/* Events Tab */}
+          <TabsContent value="events">
+            <Card className="border-none shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Events Management</CardTitle>
+                  <CardDescription>Create and manage your club's events</CardDescription>
+                </div>
+                <Dialog open={isEventDialogOpen} onOpenChange={setIsEventDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-neon-blue hover:bg-neon-blue/90">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Event
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                      <DialogTitle>{editingEvent ? 'Edit Event' : 'Add New Event'}</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="title">Title</Label>
+                        <Input
+                          id="title"
+                          value={editingEvent?.title || newEvent.title}
+                          onChange={(e) => {
+                            if (editingEvent) {
+                              setEditingEvent({ ...editingEvent, title: e.target.value });
+                            } else {
+                              setNewEvent({ ...newEvent, title: e.target.value });
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="date">Date</Label>
+                        <Input
+                          id="date"
+                          type="date"
+                          value={editingEvent?.date || newEvent.date}
+                          onChange={(e) => {
+                            if (editingEvent) {
+                              setEditingEvent({ ...editingEvent, date: e.target.value });
+                            } else {
+                              setNewEvent({ ...newEvent, date: e.target.value });
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="location">Location</Label>
+                        <Input
+                          id="location"
+                          value={editingEvent?.location || newEvent.location}
+                          onChange={(e) => {
+                            if (editingEvent) {
+                              setEditingEvent({ ...editingEvent, location: e.target.value });
+                            } else {
+                              setNewEvent({ ...newEvent, location: e.target.value });
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="registrationLink">Registration Link</Label>
+                        <Input
+                          id="registrationLink"
+                          value={editingEvent?.registrationLink || newEvent.registrationLink}
+                          onChange={(e) => {
+                            if (editingEvent) {
+                              setEditingEvent({ ...editingEvent, registrationLink: e.target.value });
+                            } else {
+                              setNewEvent({ ...newEvent, registrationLink: e.target.value });
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                          id="description"
+                          value={editingEvent?.description || newEvent.description}
+                          onChange={(e) => {
+                            if (editingEvent) {
+                              setEditingEvent({ ...editingEvent, description: e.target.value });
+                            } else {
+                              setNewEvent({ ...newEvent, description: e.target.value });
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="budget">Budget (₹)</Label>
+                        <Input
+                          id="budget"
+                          type="number"
+                          value={editingEvent?.budget || newEvent.budget}
+                          onChange={(e) => {
+                            if (editingEvent) {
+                              setEditingEvent({ ...editingEvent, budget: Number(e.target.value) });
+                            } else {
+                              setNewEvent({ ...newEvent, budget: Number(e.target.value) });
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="attendees">Expected Attendees</Label>
+                        <Input
+                          id="attendees"
+                          type="number"
+                          value={editingEvent?.attendees || newEvent.attendees}
+                          onChange={(e) => {
+                            if (editingEvent) {
+                              setEditingEvent({ ...editingEvent, attendees: Number(e.target.value) });
+                            } else {
+                              setNewEvent({ ...newEvent, attendees: Number(e.target.value) });
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="image">Image URL</Label>
+                        <Input
+                          id="image"
+                          value={editingEvent?.image || newEvent.image}
+                          onChange={(e) => {
+                            if (editingEvent) {
+                              setEditingEvent({ ...editingEvent, image: e.target.value });
+                            } else {
+                              setNewEvent({ ...newEvent, image: e.target.value });
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-4">
+                      <Button variant="outline" onClick={() => setIsEventDialogOpen(false)}>
+                        Cancel
                       </Button>
+                      <Button onClick={editingEvent ? handleEditEvent : handleAddEvent}>
+                        {editingEvent ? 'Save Changes' : 'Add Event'}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Event Details</TableHead>
+                      <TableHead>Date & Location</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Budget</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {events.map((event) => (
+                      <TableRow key={event.id} className="hover:bg-muted/50">
+                        <TableCell>
+                          <div className="flex items-center gap-4">
+                            {event.image && (
+                              <img
+                                src={event.image}
+                                alt={event.title}
+                                className="w-12 h-12 rounded-lg object-cover"
+                              />
+                            )}
+                            <div>
+                              <div className="font-medium">{event.title}</div>
+                              <div className="text-sm text-muted-foreground line-clamp-2">
+                                {event.description}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <span>{new Date(event.date).toLocaleDateString()}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">{event.location}</span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={event.status === 'open' ? 'success' : 'destructive'}
+                            className="flex items-center gap-1"
+                          >
+                            {event.status === 'open' ? <Unlock className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                            {event.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">₹{event.budget.toLocaleString()}</div>
+                          {event.registrationLink && (
+                            <a
+                              href={event.registrationLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-neon-blue hover:underline flex items-center gap-1"
+                            >
+                              Register <ExternalLink className="h-3 w-3" />
+                            </a>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingEvent(event);
+                                setIsEventDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteEvent(event.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Committee Tab */}
+          <TabsContent value="committee">
+            <Card className="border-none shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Committee Management</CardTitle>
+                  <CardDescription>Manage your club's committee members</CardDescription>
+                </div>
+                <Dialog open={isCommitteeDialogOpen} onOpenChange={setIsCommitteeDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-neon-purple hover:bg-neon-purple/90">
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Add Member
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                      <DialogTitle>{editingMember ? 'Edit Committee Member' : 'Add Committee Member'}</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="memberName">Name</Label>
+                        <Input
+                          id="memberName"
+                          value={editingMember?.name || newCommitteeMember.name}
+                          onChange={(e) => {
+                            if (editingMember) {
+                              setEditingMember({ ...editingMember, name: e.target.value });
+                            } else {
+                              setNewCommitteeMember({ ...newCommitteeMember, name: e.target.value });
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="memberRole">Role</Label>
+                        <Input
+                          id="memberRole"
+                          value={editingMember?.role || newCommitteeMember.role}
+                          onChange={(e) => {
+                            if (editingMember) {
+                              setEditingMember({ ...editingMember, role: e.target.value });
+                            } else {
+                              setNewCommitteeMember({ ...newCommitteeMember, role: e.target.value });
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="memberDepartment">Department</Label>
+                        <Input
+                          id="memberDepartment"
+                          value={editingMember?.department || newCommitteeMember.department}
+                          onChange={(e) => {
+                            if (editingMember) {
+                              setEditingMember({ ...editingMember, department: e.target.value });
+                            } else {
+                              setNewCommitteeMember({ ...newCommitteeMember, department: e.target.value });
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="memberEmail">Email</Label>
+                        <Input
+                          id="memberEmail"
+                          type="email"
+                          value={editingMember?.email || newCommitteeMember.email}
+                          onChange={(e) => {
+                            if (editingMember) {
+                              setEditingMember({ ...editingMember, email: e.target.value });
+                            } else {
+                              setNewCommitteeMember({ ...newCommitteeMember, email: e.target.value });
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="memberPhone">Phone</Label>
+                        <Input
+                          id="memberPhone"
+                          value={editingMember?.phone || newCommitteeMember.phone}
+                          onChange={(e) => {
+                            if (editingMember) {
+                              setEditingMember({ ...editingMember, phone: e.target.value });
+                            } else {
+                              setNewCommitteeMember({ ...newCommitteeMember, phone: e.target.value });
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="memberImage">Image URL</Label>
+                        <Input
+                          id="memberImage"
+                          value={editingMember?.image || newCommitteeMember.image}
+                          onChange={(e) => {
+                            if (editingMember) {
+                              setEditingMember({ ...editingMember, image: e.target.value });
+                            } else {
+                              setNewCommitteeMember({ ...newCommitteeMember, image: e.target.value });
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-4">
+                      <Button variant="outline" onClick={() => setIsCommitteeDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={editingMember ? handleEditCommitteeMember : handleAddCommitteeMember}>
+                        {editingMember ? 'Save Changes' : 'Add Member'}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Member Details</TableHead>
+                      <TableHead>Role & Department</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {committeeMembers.map((member) => (
+                      <TableRow key={member.id} className="hover:bg-muted/50">
+                        <TableCell>
+                          <div className="flex items-center gap-4">
+                            {member.image && (
+                              <img
+                                src={member.image}
+                                alt={member.name}
+                                className="w-12 h-12 rounded-full object-cover"
+                              />
+                            )}
+                            <div>
+                              <div className="font-medium">{member.name}</div>
+                              <div className="text-sm text-muted-foreground">{member.email}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="font-medium">{member.role}</div>
+                            <div className="text-sm text-muted-foreground">{member.department}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            <div>{member.email}</div>
+                            <div className="text-muted-foreground">{member.phone}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingMember(member);
+                                setIsCommitteeDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteCommitteeMember(member.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="gallery" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Gallery Management</h2>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="bg-neon-green/10 text-neon-green hover:bg-neon-green/20">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Image
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add New Image</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="title">Title</Label>
+                      <Input
+                        id="title"
+                        value={newImage.title}
+                        onChange={(e) => setNewImage({ ...newImage, title: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="imageUrl">Image URL</Label>
+                      <Input
+                        id="imageUrl"
+                        value={newImage.url}
+                        onChange={(e) => setNewImage({ ...newImage, url: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        value={newImage.description}
+                        onChange={(e) => setNewImage({ ...newImage, description: e.target.value })}
+                      />
+                    </div>
+                    <Button onClick={handleAddImage} className="w-full">Add Image</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {galleryImages.map((image) => (
+                <Card key={image.id} className="overflow-hidden">
+                  <img src={image.url} alt={image.title} className="w-full h-48 object-cover" />
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold">{image.title}</h3>
+                    <p className="text-sm text-muted-foreground">{image.description}</p>
+                    <div className="flex justify-between items-center mt-4">
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(image.uploadDate).toLocaleDateString()}
+                      </span>
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteEvent(event.id)}
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteImage(image.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  </TableCell>
-                </TableRow>
+                  </CardContent>
+                </Card>
               ))}
-            </TableBody>
-          </Table>
-        </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="budget" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Total Income</CardTitle>
+                  <CardDescription>All time income</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold text-green-500">₹{totalIncome.toLocaleString()}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Total Expenses</CardTitle>
+                  <CardDescription>All time expenses</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold text-red-500">₹{totalExpenses.toLocaleString()}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Current Balance</CardTitle>
+                  <CardDescription>Available funds</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className={`text-2xl font-bold ${currentBalance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    ₹{currentBalance.toLocaleString()}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Budget Entries</h2>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="bg-neon-yellow/10 text-neon-yellow hover:bg-neon-yellow/20">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Entry
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add Budget Entry</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="category">Category</Label>
+                      <Input
+                        id="category"
+                        value={newBudgetEntry.category}
+                        onChange={(e) => setNewBudgetEntry({ ...newBudgetEntry, category: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="amount">Amount</Label>
+                      <Input
+                        id="amount"
+                        type="number"
+                        value={newBudgetEntry.amount}
+                        onChange={(e) => setNewBudgetEntry({ ...newBudgetEntry, amount: parseFloat(e.target.value) })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="type">Type</Label>
+                      <select
+                        id="type"
+                        value={newBudgetEntry.type}
+                        onChange={(e) => setNewBudgetEntry({ ...newBudgetEntry, type: e.target.value as 'income' | 'expense' })}
+                        className="w-full p-2 border rounded-md"
+                      >
+                        <option value="income">Income</option>
+                        <option value="expense">Expense</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        value={newBudgetEntry.description}
+                        onChange={(e) => setNewBudgetEntry({ ...newBudgetEntry, description: e.target.value })}
+                      />
+                    </div>
+                    <Button onClick={handleAddBudgetEntry} className="w-full">Add Entry</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {budgetEntries.map((entry) => (
+                  <TableRow key={entry.id}>
+                    <TableCell>{new Date(entry.date).toLocaleDateString()}</TableCell>
+                    <TableCell>{entry.category}</TableCell>
+                    <TableCell>
+                      <Badge variant={entry.type === 'income' ? 'success' : 'destructive'}>
+                        {entry.type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className={entry.type === 'income' ? 'text-green-500' : 'text-red-500'}>
+                      ₹{entry.amount.toLocaleString()}
+                    </TableCell>
+                    <TableCell>{entry.description}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteBudgetEntry(entry.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

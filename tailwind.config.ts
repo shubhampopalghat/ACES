@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss";
+import animate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
@@ -137,7 +139,9 @@ export default {
         'tech-pattern': "url('/tech-pattern.svg')",
         'cyber-grid': "linear-gradient(rgba(6, 9, 31, 0.7) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 9, 31, 0.7) 1px, transparent 1px)",
         'glow-radial': 'radial-gradient(circle, rgba(0, 238, 255, 0.15) 0%, rgba(0, 0, 0, 0) 70%)',
-        'neon-gradient': 'linear-gradient(90deg, #00eeff, #9d4edd, #ff00ff, #00ff9f)',
+        // 'neon-gradient': 'linear-gradient(90deg, #00eeff, #9d4edd, #ff00ff, #00ff9f)',
+        'neon-gradient': 'linear-gradient(90deg, #00eeff, #9d4edd, #ff00ff)',
+
       },
       backdropFilter: {
         'none': 'none',
@@ -145,5 +149,5 @@ export default {
       },
     }
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [animate],
 } satisfies Config;

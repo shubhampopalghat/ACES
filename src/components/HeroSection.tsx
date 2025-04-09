@@ -1,8 +1,15 @@
-
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
 
 export default function HeroSection() {
+  const handleScrollDown = () => {
+    window.scrollTo({
+      top: window.innerHeight,
+      behavior: 'smooth'
+    });
+  };
+
   return (
     <section className="relative min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center py-20 overflow-hidden">
       <div className="absolute inset-0 z-0 cyber-grid opacity-20"></div>
@@ -44,13 +51,13 @@ export default function HeroSection() {
             className="flex flex-col sm:flex-row gap-4 mt-8"
           >
             <Button 
-             onClick={() => {
-              window.location.href = '/events';
-            }}
+              onClick={() => {
+                window.location.href = '/events';
+              }}
               size="lg" 
               className="relative overflow-hidden group"
             >
-              <span className="absolute inset-0 bg-neon-gradient animate-gradient-animation bg-300%"></span>
+              <span className="absolute inset-0 bg-neon-gradient animate bg-300%"></span>
               <span className="relative">Explore Events</span>
             </Button>
             <Button 
@@ -89,24 +96,17 @@ export default function HeroSection() {
         </div>
       </div>
       
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <div className="w-8 h-8 border-2 border-neon-blue rounded-full flex items-center justify-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-neon-blue"
-          >
-            <path d="M12 5v14M5 12l7 7 7-7" />
-          </svg>
+      <motion.button
+        onClick={handleScrollDown}
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce cursor-pointer"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+      >
+        <div className="w-10 h-10 border-2 border-neon-blue rounded-full flex items-center justify-center hover:bg-neon-blue/10 transition-colors">
+          <ChevronDown className="h-6 w-6 text-neon-blue" />
         </div>
-      </div>
+      </motion.button>
     </section>
   );
 }

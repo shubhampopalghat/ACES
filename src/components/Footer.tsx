@@ -4,13 +4,13 @@ import { Zap, Github, Twitter, Linkedin, Instagram } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="border-t border-border/40 bg-background/90 backdrop-blur-sm">
+    <footer className="border-t border-border/40 bg-background/90 backdrop-blur-sm font-helvetica">
       <div className="container px-4 md:px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
             <Link to="/" className="flex items-center gap-2">
-              <Zap className="h-6 w-6 text-neon-blue" />
-              <span className="text-xl font-bold bg-clip-text text-transparent bg-neon-gradient animate-gradient-animation bg-300%">TechSoc</span>
+              <img src="./logo.png" alt="ACES Logo" className="w-10 h-10 mb-2" />
+              <span className="text-2xl font-bold bg-clip-text text-transparent bg-neon-gradient animate-gradient-animation bg-300%"> ACES </span>
             </Link>
             <p className="text-sm text-muted-foreground">
               Empowering students through technology innovation, collaborative learning, and professional development.

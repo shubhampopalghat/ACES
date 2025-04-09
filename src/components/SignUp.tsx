@@ -42,19 +42,19 @@ const SignUp: React.FC = () => {
   };
 
   return (
-    <div className=" font-helvetica relative min-h-screen">
+    <div className=" font-helvetica relative min-h-screen font-helvetica">
       <ThreeDBackground />
       <Navbar />
       <div className=" relative z-10 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 bg-background/80 backdrop-blur-xl p-8 rounded-xl border border-border/50 shadow-lg">
           <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
+            <h2 className="mt-6 text-center text-3xl font-bold text-foreground">
               Create your account
             </h2>
           </div>
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit} >
             <div className="rounded-md shadow-sm -space-y-px">
-              <div>
+              <div className='font-helvetica'>
                 <label htmlFor="name" className="sr-only">
                   Full Name
                 </label>
@@ -79,7 +79,7 @@ const SignUp: React.FC = () => {
                   type="email"
                   autoComplete="email"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-border/50 placeholder-foreground/50 text-foreground focus:outline-none focus:ring-neon-blue focus:border-neon-blue focus:z-10 sm:text-sm bg-background/50"
+                  className="mt-2 appearance-none rounded-none relative block w-full px-3 py-2 border border-border/50 placeholder-foreground/50 text-foreground focus:outline-none focus:ring-neon-blue focus:border-neon-blue focus:z-10 sm:text-sm bg-background/50"
                   placeholder="Email address"
                   value={formData.email}
                   onChange={handleChange}
@@ -94,7 +94,7 @@ const SignUp: React.FC = () => {
                   name="password"
                   type="password"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-border/50 placeholder-foreground/50 text-foreground focus:outline-none focus:ring-neon-blue focus:border-neon-blue focus:z-10 sm:text-sm bg-background/50"
+                  className="mt-2 appearance-none rounded-none relative block w-full px-3 py-2 border border-border/50 placeholder-foreground/50 text-foreground focus:outline-none focus:ring-neon-blue focus:border-neon-blue focus:z-10 sm:text-sm bg-background/50"
                   placeholder="Password"
                   value={formData.password}
                   onChange={handleChange}
@@ -109,7 +109,7 @@ const SignUp: React.FC = () => {
                   name="confirmPassword"
                   type="password"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-border/50 placeholder-foreground/50 text-foreground rounded-b-md focus:outline-none focus:ring-neon-blue focus:border-neon-blue focus:z-10 sm:text-sm bg-background/50"
+                  className="mt-2 appearance-none rounded-none relative block w-full px-3 py-2 border border-border/50 placeholder-foreground/50 text-foreground rounded-b-md focus:outline-none focus:ring-neon-blue focus:border-neon-blue focus:z-10 sm:text-sm bg-background/50"
                   placeholder="Confirm Password"
                   value={formData.confirmPassword}
                   onChange={handleChange}

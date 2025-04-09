@@ -92,7 +92,7 @@ const Navbar = () => {
   ];
 
   return (
-    <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? 'backdrop-blur-xl bg-background/60 border-b border-border/50 shadow-lg' : 'bg-transparent'}`}>
+    <header className={`sticky font-helvetica text-xl top-0 z-50 w-full transition-all duration-300 ${scrolled ? 'backdrop-blur-xl bg-background/60 border-b border-border/50 shadow-lg' : 'bg-transparent'}`}>
       <div className="container flex h-20 items-center justify-between items-centerq">
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center gap-2">
@@ -103,128 +103,66 @@ const Navbar = () => {
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-6 ml-7">
           <Link to="/" className="text-base font-medium tracking-wide text-foreground hover:text-neon-blue transition-colors relative group font-helvetica">
             Home
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-neon-blue group-hover:w-full transition-all duration-300"></span>
           </Link>
-          
-          <div className="relative">
-            <button
-              onClick={() => setShowEvents(!showEvents)}
-              className="text-base font-medium tracking-wide text-foreground hover:text-neon-blue transition-colors relative group font-helvetica flex items-center gap-1"
-            >
-              Events
-              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showEvents ? 'rotate-180' : ''}`} />
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-neon-blue group-hover:w-full transition-all duration-300"></span>
-            </button>
-            
-            {/* Events Dropdown */}
-            <AnimatePresence>
-              {showEvents && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute top-full left-0 w-96 bg-background/95 backdrop-blur-xl border border-border/50 rounded-lg shadow-lg p-4 mt-2"
-                >
-                  {/* Upcoming Events Section */}
-                  <div className="mb-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Clock className="h-4 w-4 text-neon-blue" />
-                      <h3 className="font-bold text-foreground">Upcoming Events</h3>
-                    </div>
-                    <div className="space-y-3">
-                      {upcomingEvents.map((event) => (
-                        <Link
-                          key={event.id}
-                          to={event.link}
-                          className="block group"
-                          onClick={() => setShowEvents(false)}
-                        >
-                          <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors">
-                            <div className="w-16 h-16 rounded-lg overflow-hidden">
-                              <img
-                                src={event.src}
-                                alt={event.title}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-bold text-foreground group-hover:text-neon-blue transition-colors">
-                                {event.title}
-                              </h3>
-                              <p className="text-sm text-muted-foreground">{event.date}</p>
-                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{event.description}</p>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="border-t border-border/50 pt-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Calendar className="h-4 w-4 text-neon-purple" />
-                      <h3 className="font-bold text-foreground">All Events</h3>
-                    </div>
-                    <div className="space-y-3">
-                      {events.map((event) => (
-                        <Link
-                          key={event.id}
-                          to={event.link}
-                          className="block group"
-                          onClick={() => setShowEvents(false)}
-                        >
-                          <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors">
-                            <div className="w-16 h-16 rounded-lg overflow-hidden">
-                              <img
-                                src={event.src}
-                                alt={event.title}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-bold text-foreground group-hover:text-neon-blue transition-colors">
-                                {event.title}
-                              </h3>
-                              <p className="text-sm text-muted-foreground">{event.date}</p>
-                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{event.description}</p>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
+          <Link to="/events" className="text-base font-medium tracking-wide text-foreground hover:text-neon-blue transition-colors relative group font-helvetica">
+            Events
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-neon-blue group-hover:w-full transition-all duration-300"></span>
+          </Link>
           <Link to="/highlights" className="text-base font-medium tracking-wide text-foreground hover:text-neon-blue transition-colors relative group font-helvetica">
             Highlights
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-neon-blue group-hover:w-full transition-all duration-300"></span>
+          </Link>
+          <Link to="/gallery" className="text-base font-medium tracking-wide text-foreground hover:text-neon-blue transition-colors relative group font-helvetica">
+            Gallery
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-neon-blue group-hover:w-full transition-all duration-300"></span>
           </Link>
           <Link to="/about" className="text-base font-medium tracking-wide text-foreground hover:text-neon-blue transition-colors relative group font-helvetica">
             About Us
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-neon-blue group-hover:w-full transition-all duration-300"></span>
           </Link>
-          {/* <Link to="/join" className="text-base font-medium tracking-wide text-foreground hover:text-neon-blue transition-colors relative group font-helvetica">
-            Join Community
+          <Link to="/leaderboard" className="text-base font-medium tracking-wide text-foreground hover:text-neon-blue transition-colors relative group font-helvetica">
+            Leaderboard
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-neon-blue group-hover:w-full transition-all duration-300"></span>
-          </Link> */}
+          </Link>
         </nav>
 
         {!isAuthPage && (
           <div className="hidden md:flex items-center gap-4">
-            <Button 
-              variant="outline" 
-              className="border-neon-blue/50 text-neon-blue hover:bg-neon-blue/10 hover:text-neon-blue font-helvetica"
-              onClick={() => navigate('/signin')}
-            >
-              Sign In
-            </Button>
-            <Button 
+            <div className="relative group">
+              <Button
+                variant="outline"
+                className="border-neon-blue/50 text-neon-blue hover:bg-neon-blue/10 hover:text-neon-blue font-helvetica"
+              >
+                Sign In <ChevronDown className="ml-1 h-4 w-4" />
+              </Button>
+              <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-background/95 backdrop-blur-xl border border-border/50 overflow-hidden transition-all duration-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible z-50">
+                <div className="py-1">
+                  <Link
+                    to="/signin"
+                    className="block px-4 py-2 text-sm text-foreground hover:bg-neon-blue/10 hover:text-neon-blue"
+                  >
+                    Regular Sign In
+                  </Link>
+                  <Link
+                    to="/member/login"
+                    className="block px-4 py-2 text-sm text-foreground hover:bg-neon-purple/10 hover:text-neon-purple"
+                  >
+                    Member Login
+                  </Link>
+                  <Link
+                    to="/admin/login"
+                    className="block px-4 py-2 text-sm text-foreground hover:bg-neon-green/10 hover:text-neon-green"
+                  >
+                    Admin Login
+                  </Link>
+                </div>
+              </div>
+            </div>
+            <Button
               className="relative overflow-hidden group font-helvetica font-bold"
               onClick={() => navigate('/signup')}
             >
@@ -338,6 +276,25 @@ const Navbar = () => {
                     <span className="relative">
                       About Us
                       <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-neon-green group-hover:w-full transition-all duration-300"></span>
+                    </span>
+                    <ChevronRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </motion.div>
+                </Link>
+
+                <Link
+                  to="/leaderboard"
+                  className="group flex items-center text-3xl font-bold w-full justify-center font-helvetica"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <motion.div
+                    className="flex items-center gap-2"
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    <span className="relative">
+                      Leaderboard
+                      <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-neon-blue group-hover:w-full transition-all duration-300"></span>
                     </span>
                     <ChevronRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </motion.div>
